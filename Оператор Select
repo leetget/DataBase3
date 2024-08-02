@@ -1,0 +1,37 @@
+1)Получить список полётов (город назначения, город отправления, дата, тип самолёта), выполненных после 2013 года компанией 'Turkish AiirLines'. Упорядочить по полю Dat от свежей даты до самой поздней.
+
+select c1.cityname,c2.cityname,dat,plane.planetypename
+from flight f
+join city c1 on f.Cityto_ID = c1.City_ID
+join city c2 on f.Cityfrom_ID = c2.City_ID
+join PlaneType plane on f.PlaneType_ID = plane.PlaneType_ID
+join company comp on f.Company_ID = comp.company_Id
+where dat > '2013-12-12' and companyname like 'Turkish%' 
+order by dat desc
+
+2)Получить список (номер группы, суммарное число набранных баллов) для тех групп, которые правильно ответили хотя бы на один вопрос. Упорядочить по баллам в убывающем порядке.
+
+SELECT g.GruppName, SUM(q.LevelC) AS Balls
+FROM Gruppa g
+JOIN Student s ON g.Grupp_ID = s.Grupp_ID
+JOIN Answer a ON s.Student_ID = a.Student_ID
+JOIN Query q ON a.Query_ID = q.Query_ID
+WHERE a.Result = 1
+GROUP BY g.GruppName
+ORDER BY Balls DESC;
+
+3)Получить количество и стоимость проданного и купленного каждого из товаров в 2011 году для каждой организации (Организация, название товара, к-во проданного, стоимость проданного, к-во купленного, стоимость купленного). Упорядочить по названию организации, затем по названию товара.
+
+select comp.orgname,t.TovarName,
+ISNULL(SUM(CASE WHEN s.InOut = '-' THEN f.Amount ELSE 0 END), 0) AS AmountProdano,
+ISNULL(SUM(CASE WHEN s.InOut = '-' THEN f.Amount * f.Price ELSE 0 END), 0) AS CostProdano,
+ISNULL(SUM(CASE WHEN s.InOut = '+' THEN f.Amount ELSE 0 END), 0) AS AmountKupleno,
+ISNULL(SUM(CASE WHEN s.InOut = '+' THEN f.Amount * f.Price ELSE 0 END), 0) AS AmountCost
+from Org comp
+join nakl s on comp.Org_ID = s.Org_ID and year(s.dat)=2011
+join SostNakl f on s.Nakl_ID = f.Nakl_ID
+join tovar t on f.Tovar_ID = t.Tovar_ID
+group by comp.orgname, t.tovarname
+order by comp.orgname,t.tovarname
+
+
