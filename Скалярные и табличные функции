@@ -1,0 +1,54 @@
+1)Напишите функцию nPassgr(@Flight_ID int), возвращающую число пассажиров в рейсе с идентификатором @Flight_ID.
+Контрольный запрос:
+select Flight.*, dbo.nPassgr(Flight_ID) as [Пассажиров]
+from Flight
+order by Flight_ID
+
+CREATE FUNCTION dbo.nPassgr(@Flight_ID int)
+returns int as
+BEGIN
+return(
+select count(passgr_id)
+from Passgr
+where Flight_ID = @Flight_ID
+)
+end
+GO
+select Flight.*, dbo.nPassgr(Flight_ID) as [Пассажиров]
+from Flight
+order by Flight_ID
+drop function dbo.nPassgr
+
+2)Написать функцию dbo.CompPassgr(@Year int), возвращающую таблицу
+(
+  CompanyName varchar(40),
+  nPassgr int -- число перевезённых пассажиров
+),
+содержащую число пассажиров, перевезённых каждой компанией в году @Year. Компании не имевших перевозок тоже включить в результат. В решении используйте внешние соединения.
+Контрольный запрос:
+select *
+from dbo.CompPassgr(2013)
+order by companyname
+
+create function dbo.CompPassgr(@year int)
+returns @table1 table(
+	CompanyName varchar(40),
+	NPassgr int
+) AS
+BEGIN
+	insert into @table1
+	select CompanyName,(
+		select count(*)
+		from passgr,Flight
+		where Passgr.Flight_ID = Flight.Flight_ID
+		and FLight.Company_ID = Company.Company_ID
+		and year(dat) =@year
+	)
+	from company
+	return
+end
+go
+select *
+from dbo.CompPassgr(2013)
+order by companyname
+drop function dbo.CompPassgr
