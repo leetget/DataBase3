@@ -1,0 +1,40 @@
+1)Уволить (MoveKindName='Уволен') из организации всех сотрудников, имеющих дату рождения ранее 1970 года. Дата увольнения – текущая. Замечание: дата приказа, в представленном случае, совпадает с 11.11.2022 и будет отличаться.
+
+begin tran
+begin try
+UPDATE Move
+    SET Dat = GETDATE()
+    FROM Move m
+    JOIN Employee e ON e.Emp_ID = m.Emp_ID
+    JOIN MoveKind mk ON m.MoveKind_ID = mk.MoveKind_ID
+    WHERE e.Birth < '1970-01-01' 
+    AND mk.MoveKindName = 'Уволен'
+    AND e.Emp_ID IN (
+        SELECT Emp_ID
+        FROM Employee
+        WHERE year(Birth) < '1970'
+    )
+
+
+SELECT e.FIO, m.Emp_ID, m.MoveKind_ID, m.Dat, Birth, MoveKindName
+FROM Move m, Employee e, MoveKind mk
+WHERE e.Emp_ID=m.Emp_ID
+AND m.MoveKind_ID=mk.MoveKind_ID
+
+2)Удалить все исходящие накладные, в которых отсутствует список товаров.
+
+begin tran
+begin try
+
+
+DELETE FROM Nakl
+WHERE InOut = '-' AND Nakl_ID NOT IN (SELECT Nakl_ID FROM SostNakl)
+
+SELECT Numb, Org_ID, Dat, InOut
+FROM Nakl
+WHERE InOut='-'
+
+end try
+begin catch select ERROR_MESSAGE()
+end catch
+rollback tran
